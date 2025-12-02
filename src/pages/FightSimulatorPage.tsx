@@ -69,9 +69,12 @@ export default function FightSimulatorPage() {
       }
     }
     
-    setShowBossSelector(false);
-    setSelectedDBBosses(new Set());
-    alert(`Loaded ${loadedCount} boss${loadedCount !== 1 ? 'es' : ''} from database!`);
+    if (loadedCount > 0) {
+      window.location.reload();
+    } else {
+      setShowBossSelector(false);
+      setSelectedDBBosses(new Set());
+    }
   };
 
   const handleLoadAll = async () => {
@@ -84,9 +87,12 @@ export default function FightSimulatorPage() {
       }
     }
     
-    setShowBossSelector(false);
-    setSelectedDBBosses(new Set());
-    alert(`Loaded all ${loadedCount} bosses from database!`);
+    if (loadedCount > 0) {
+      window.location.reload();
+    } else {
+      setShowBossSelector(false);
+      setSelectedDBBosses(new Set());
+    }
   };
 
   const handleFight = async () => {
@@ -143,14 +149,7 @@ export default function FightSimulatorPage() {
 
     // Remove from session table
     await removeBoss(index);
-    
-    // Reset selections if removed boss was selected
-    if (selectedBoss1 === index) setSelectedBoss1(-1);
-    if (selectedBoss2 === index) setSelectedBoss2(-1);
-    
-    // Adjust selections if they're after the removed index
-    if (selectedBoss1 > index) setSelectedBoss1(selectedBoss1 - 1);
-    if (selectedBoss2 > index) setSelectedBoss2(selectedBoss2 - 1);
+    window.location.reload();
   };
 
   const handleClearSession = () => {
@@ -164,8 +163,7 @@ export default function FightSimulatorPage() {
     setShowClearConfirm(false);
     
     if (success) {
-      setSelectedBoss1(-1);
-      setSelectedBoss2(-1);
+      window.location.reload();
     }
   };
 

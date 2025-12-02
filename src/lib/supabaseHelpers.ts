@@ -329,6 +329,12 @@ export async function getSessionBosses(): Promise<BossData[]> {
     const bossNames = sessionData.map(item => item.boss_name);
     console.log('📋 Session boss names:', bossNames);
 
+    // If no boss names, return early
+    if (bossNames.length === 0) {
+      console.log('ℹ️ No boss names in session');
+      return [];
+    }
+
     // Then fetch full boss data for those names
     const { data: bossesData, error: bossesError } = await supabase
       .from('bosses')

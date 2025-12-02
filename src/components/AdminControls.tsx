@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Lock, LogOut, Settings, Trash2, XCircle } from 'lucide-react';
 import { useAdmin } from '../context/AdminContext';
-import { clearSession, getAllBosses, deleteBoss } from '../lib/supabaseHelpers';
+import { getAllBosses, deleteBoss } from '../lib/supabaseHelpers';
 import { isSupabaseEnabled } from '../lib/supabase';
 import type { BossData } from '../types/boss';
 
@@ -23,22 +23,6 @@ export default function AdminControls() {
       setError('');
     } else {
       setError('Invalid password');
-    }
-  };
-
-  const handleClearSession = async () => {
-    if (!confirm('Clear all bosses from the current session? This will also clear the session scoreboard stats.')) {
-      return;
-    }
-
-    setLoading(true);
-    const success = await clearSession();
-    setLoading(false);
-
-    if (success) {
-      alert('✅ Session cleared! All bosses and fight stats removed from arena.');
-    } else {
-      alert('❌ Failed to clear session. Check console for errors.');
     }
   };
 
@@ -115,30 +99,15 @@ export default function AdminControls() {
               </div>
 
               <div className="p-6 space-y-6 overflow-y-auto">
-                {/* Session Controls */}
-                <div className="space-y-3">
-                  <h3 className="text-sm font-mono text-emerald-400 flex items-center gap-2">
-                    <Settings className="w-4 h-4" />
-                    SESSION_CONTROLS
-                  </h3>
-                  <button
-                    onClick={handleClearSession}
-                    disabled={loading}
-                    className="w-full bg-red-900/50 hover:bg-red-900 border border-red-500/30 text-red-300 font-mono text-xs py-3 px-4 rounded transition-all disabled:opacity-50"
-                  >
-                    {loading ? 'CLEARING...' : 'CLEAR_SESSION (Remove all bosses from arena)'}
-                  </button>
-                  <p className="text-xs font-mono text-gray-500">
-                    Removes all bosses from the active session. Does not delete from database.
-                  </p>
-                </div>
-
                 {/* Boss Database Manager */}
                 <div className="space-y-3">
                   <h3 className="text-sm font-mono text-emerald-400 flex items-center gap-2">
                     <Trash2 className="w-4 h-4" />
                     BOSS_DATABASE_MANAGER
                   </h3>
+                  <p className="text-xs font-mono text-gray-400">
+                    Permanently delete bosses from the database. Students can load/remove bosses from sessions without admin access.
+                  </p>
                   
                   {allBosses.length === 0 ? (
                     <button

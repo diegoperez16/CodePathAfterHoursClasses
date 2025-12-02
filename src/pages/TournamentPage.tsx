@@ -27,6 +27,7 @@ export default function TournamentPage() {
   const [champion, setChampion] = useState<BossData | null>(null);
   const [activeFight, setActiveFight] = useState<{ matchId: string; result: FightResult } | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [showStory, setShowStory] = useState<BossData | null>(null);
 
   useEffect(() => {
     if (bosses.length >= 2) {
@@ -243,6 +244,47 @@ export default function TournamentPage() {
           </div>
         )}
 
+        {/* Story Modal */}
+        {showStory && (
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-950 border border-emerald-500/30 rounded-lg max-w-2xl w-full max-h-[80vh] overflow-auto">
+              <div className="sticky top-0 bg-gray-950 border-b border-emerald-500/30 p-4 flex justify-between items-center">
+                <h3 className="text-lg font-mono text-emerald-400">{showStory.name}_STORY</h3>
+                <button
+                  onClick={() => setShowStory(null)}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="p-6 space-y-4">
+                <div className="bg-gray-900 border border-gray-800 rounded p-4">
+                  <div className="grid grid-cols-3 gap-4 mb-4 text-sm font-mono">
+                    <div>
+                      <span className="text-gray-500">HP:</span> <span className="text-cyan-400">{showStory.hp}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">ATK:</span> <span className="text-red-400">{showStory.attack}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">SPD:</span> <span className="text-yellow-400">{showStory.speed}</span>
+                    </div>
+                  </div>
+                  <div className="text-sm text-gray-300 leading-relaxed">
+                    {showStory.story}
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowStory(null)}
+                  className="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-mono text-xs py-2 px-4 rounded transition-all"
+                >
+                  CLOSE
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Fight Modal */}
         {activeFight && (
           <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
@@ -299,16 +341,27 @@ export default function TournamentPage() {
                         >
                           <div className="space-y-2">
                             {/* Boss 1 */}
-                            <div
-                              className={`p-2 rounded text-sm font-mono ${
-                                match.boss1
-                                  ? match.winner?.name === match.boss1.name
-                                    ? 'bg-emerald-500/20 text-emerald-400'
-                                    : 'bg-gray-800 text-gray-300'
-                                  : 'bg-gray-800/50 text-gray-600'
-                              }`}
-                            >
-                              {match.boss1?.name || 'TBD'}
+                            <div className="flex items-center gap-1">
+                              <div
+                                className={`flex-1 p-2 rounded text-sm font-mono ${
+                                  match.boss1
+                                    ? match.winner?.name === match.boss1.name
+                                      ? 'bg-emerald-500/20 text-emerald-400'
+                                      : 'bg-gray-800 text-gray-300'
+                                    : 'bg-gray-800/50 text-gray-600'
+                                }`}
+                              >
+                                {match.boss1?.name || 'TBD'}
+                              </div>
+                              {match.boss1 && (
+                                <button
+                                  onClick={() => setShowStory(match.boss1!)}
+                                  className="bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-400 hover:text-emerald-400 p-1.5 rounded transition-all"
+                                  title="View Story"
+                                >
+                                  <Trophy className="w-3 h-3" />
+                                </button>
+                              )}
                             </div>
 
                             {/* VS or Winner indicator */}
@@ -317,16 +370,27 @@ export default function TournamentPage() {
                             </div>
 
                             {/* Boss 2 */}
-                            <div
-                              className={`p-2 rounded text-sm font-mono ${
-                                match.boss2
-                                  ? match.winner?.name === match.boss2.name
-                                    ? 'bg-emerald-500/20 text-emerald-400'
-                                    : 'bg-gray-800 text-gray-300'
-                                  : 'bg-gray-800/50 text-gray-600'
-                              }`}
-                            >
-                              {match.boss2?.name || 'TBD'}
+                            <div className="flex items-center gap-1">
+                              <div
+                                className={`flex-1 p-2 rounded text-sm font-mono ${
+                                  match.boss2
+                                    ? match.winner?.name === match.boss2.name
+                                      ? 'bg-emerald-500/20 text-emerald-400'
+                                      : 'bg-gray-800 text-gray-300'
+                                    : 'bg-gray-800/50 text-gray-600'
+                                }`}
+                              >
+                                {match.boss2?.name || 'TBD'}
+                              </div>
+                              {match.boss2 && (
+                                <button
+                                  onClick={() => setShowStory(match.boss2!)}
+                                  className="bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-400 hover:text-emerald-400 p-1.5 rounded transition-all"
+                                  title="View Story"
+                                >
+                                  <Trophy className="w-3 h-3" />
+                                </button>
+                              )}
                             </div>
                           </div>
 

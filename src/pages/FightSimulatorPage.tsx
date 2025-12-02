@@ -22,6 +22,7 @@ export default function FightSimulatorPage() {
   const [showBossSelector, setShowBossSelector] = useState(false);
   const [availableBosses, setAvailableBosses] = useState<BossData[]>([]);
   const [selectedDBBosses, setSelectedDBBosses] = useState<Set<string>>(new Set());
+  const [showStory, setShowStory] = useState<BossData | null>(null);
 
   const handleOpenBossSelector = async () => {
     if (!isSupabaseEnabled()) {
@@ -178,7 +179,7 @@ export default function FightSimulatorPage() {
                 <span className="text-blue-400">REALTIME_SYNC</span>
               </div>
             )}
-            {isSupabaseEnabled() && isAdmin && (
+            {isSupabaseEnabled() && (
               <button
                 onClick={handleOpenBossSelector}
                 disabled={loadingFromDB}
@@ -308,7 +309,19 @@ export default function FightSimulatorPage() {
                             : 'border-gray-800 hover:border-cyan-500/30 bg-gray-900/50'
                         }`}
                       >
-                        <h3 className="font-mono text-sm text-white mb-2">{boss.name}</h3>
+                        <div className="flex items-start justify-between mb-2">
+                          <h3 className="font-mono text-sm text-white">{boss.name}</h3>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowStory(boss);
+                            }}
+                            className="text-gray-500 hover:text-emerald-400 transition-colors"
+                            title="View Story"
+                          >
+                            <Trophy className="w-3 h-3" />
+                          </button>
+                        </div>
                         <div className="grid grid-cols-3 gap-2 text-[11px] font-mono">
                           <div className="text-gray-500">
                             HP <span className="text-cyan-400">{boss.hp}</span>
@@ -321,18 +334,16 @@ export default function FightSimulatorPage() {
                           </div>
                         </div>
                       </button>
-                      {isAdmin && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleRemoveBossFromSession(boss.name, index);
-                          }}
-                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 bg-red-500 hover:bg-red-400 text-white p-1.5 rounded transition-all"
-                          title="Remove from session"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      )}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoveBossFromSession(boss.name, index);
+                        }}
+                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 bg-red-500 hover:bg-red-400 text-white p-1.5 rounded transition-all"
+                        title="Remove from session"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -368,7 +379,19 @@ export default function FightSimulatorPage() {
                             : 'border-gray-800 hover:border-red-500/30 bg-gray-900/50'
                         }`}
                       >
-                        <h3 className="font-mono text-sm text-white mb-2">{boss.name}</h3>
+                        <div className="flex items-start justify-between mb-2">
+                          <h3 className="font-mono text-sm text-white">{boss.name}</h3>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowStory(boss);
+                            }}
+                            className="text-gray-500 hover:text-emerald-400 transition-colors"
+                            title="View Story"
+                          >
+                            <Trophy className="w-3 h-3" />
+                          </button>
+                        </div>
                         <div className="grid grid-cols-3 gap-2 text-[11px] font-mono">
                           <div className="text-gray-500">
                             HP <span className="text-cyan-400">{boss.hp}</span>
@@ -381,22 +404,61 @@ export default function FightSimulatorPage() {
                           </div>
                         </div>
                       </button>
-                      {isAdmin && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleRemoveBossFromSession(boss.name, index);
-                          }}
-                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 bg-red-500 hover:bg-red-400 text-white p-1.5 rounded transition-all"
-                          title="Remove from session"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      )}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoveBossFromSession(boss.name, index);
+                        }}
+                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 bg-red-500 hover:bg-red-400 text-white p-1.5 rounded transition-all"
+                        title="Remove from session"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
                     </div>
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Story Modal */}
+        {showStory && (
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-950 border border-emerald-500/30 rounded-lg max-w-2xl w-full max-h-[80vh] overflow-auto">
+              <div className="sticky top-0 bg-gray-950 border-b border-emerald-500/30 p-4 flex justify-between items-center">
+                <h3 className="text-lg font-mono text-emerald-400">{showStory.name}_STORY</h3>
+                <button
+                  onClick={() => setShowStory(null)}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="p-6 space-y-4">
+                <div className="bg-gray-900 border border-gray-800 rounded p-4">
+                  <div className="grid grid-cols-3 gap-4 mb-4 text-sm font-mono">
+                    <div>
+                      <span className="text-gray-500">HP:</span> <span className="text-cyan-400">{showStory.hp}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">ATK:</span> <span className="text-red-400">{showStory.attack}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">SPD:</span> <span className="text-yellow-400">{showStory.speed}</span>
+                    </div>
+                  </div>
+                  <div className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">
+                    {showStory.story}
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowStory(null)}
+                  className="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-mono text-xs py-2 px-4 rounded transition-all"
+                >
+                  CLOSE
+                </button>
+              </div>
             </div>
           </div>
         )}

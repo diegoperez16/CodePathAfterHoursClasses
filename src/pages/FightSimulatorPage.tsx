@@ -21,6 +21,8 @@ export default function FightSimulatorPage() {
   const [availableBosses, setAvailableBosses] = useState<BossData[]>([]);
   const [selectedDBBosses, setSelectedDBBosses] = useState<Set<string>>(new Set());
   const [showStory, setShowStory] = useState<BossData | null>(null);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [clearingSession, setClearingSession] = useState(false);
 
   const handleOpenBossSelector = async () => {
     if (!isSupabaseEnabled()) {
@@ -151,18 +153,19 @@ export default function FightSimulatorPage() {
     if (selectedBoss2 > index) setSelectedBoss2(selectedBoss2 - 1);
   };
 
-  const handleClearSession = async () => {
-    if (!confirm('Clear all bosses from the current session? This will also clear the session scoreboard stats.')) {
-      return;
-    }
+  const handleClearSession = () => {
+    setShowClearConfirm(true);
+  };
 
+  const confirmClearSession = async () => {
+    setClearingSession(true);
     const success = await clearSession();
+    setClearingSession(false);
+    setShowClearConfirm(false);
+    
     if (success) {
-      alert('Session cleared! All bosses and fight stats removed from arena.');
       setSelectedBoss1(-1);
       setSelectedBoss2(-1);
-    } else {
-      alert('Failed to clear session. Check console for errors.');
     }
   };
 
@@ -215,6 +218,38 @@ export default function FightSimulatorPage() {
             )}
           </div>
         </header>
+
+        {/* Clear Session Confirmation Modal */}
+        {showClearConfirm && (
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-950 border border-red-500/30 rounded-lg max-w-md w-full">
+              <div className="bg-gray-900 border-b border-red-500/30 px-6 py-4">
+                <h3 className="text-lg font-mono text-red-400">CONFIRM_CLEAR_SESSION</h3>
+              </div>
+              <div className="p-6 space-y-4">
+                <p className="text-sm font-mono text-gray-300">
+                  Clear all bosses from the current session? This will also clear the session scoreboard stats.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={confirmClearSession}
+                    disabled={clearingSession}
+                    className="flex-1 bg-red-900/50 hover:bg-red-900 border border-red-500/30 text-red-300 font-mono text-xs py-2 px-4 rounded transition-all disabled:opacity-50"
+                  >
+                    {clearingSession ? 'CLEARING...' : 'CONFIRM_CLEAR'}
+                  </button>
+                  <button
+                    onClick={() => setShowClearConfirm(false)}
+                    disabled={clearingSession}
+                    className="flex-1 bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300 font-mono text-xs py-2 px-4 rounded transition-all disabled:opacity-50"
+                  >
+                    CANCEL
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Boss Selector Modal */}
         {showBossSelector && (

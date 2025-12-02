@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Swords, Trophy, RotateCcw, Plus, BarChart3, RefreshCw, X } from 'lucide-react';
+import { Swords, Trophy, RotateCcw, Plus, BarChart3, RefreshCw, X, Trash2 } from 'lucide-react';
 import { useBosses } from '../context/BossContext';
 import { simulateFight } from '../utils/fightSimulator';
-import { getAllBosses, updateBossStatsByName, updateSessionStats } from '../lib/supabaseHelpers';
+import { getAllBosses, updateBossStatsByName, updateSessionStats, clearSession } from '../lib/supabaseHelpers';
 import { isSupabaseEnabled } from '../lib/supabase';
 import AnimatedFightLog from '../components/AnimatedFightLog';
 import type { FightResult, BossData } from '../types/boss';
@@ -135,7 +135,7 @@ export default function FightSimulatorPage() {
   };
 
   const handleRemoveBossFromSession = async (bossName: string, index: number) => {
-    if (!confirm(`Remove ${bossName} from the arena? (This won't delete it from the database)`)) {
+    if (!confirm(`Remove ${bossName} from the arena? This will not delete it from the database.`)) {
       return;
     }
 
@@ -149,6 +149,21 @@ export default function FightSimulatorPage() {
     // Adjust selections if they're after the removed index
     if (selectedBoss1 > index) setSelectedBoss1(selectedBoss1 - 1);
     if (selectedBoss2 > index) setSelectedBoss2(selectedBoss2 - 1);
+  };
+
+  const handleClearSession = async () => {
+    if (!confirm('Clear all bosses from the current session? This will also clear the session scoreboard stats.')) {
+      return;
+    }
+
+    const success = await clearSession();
+    if (success) {
+      alert('Session cleared! All bosses and fight stats removed from arena.');
+      setSelectedBoss1(-1);
+      setSelectedBoss2(-1);
+    } else {
+      alert('Failed to clear session. Check console for errors.');
+    }
   };
 
   return (
@@ -178,14 +193,25 @@ export default function FightSimulatorPage() {
               </div>
             )}
             {isSupabaseEnabled() && (
-              <button
-                onClick={handleOpenBossSelector}
-                disabled={loadingFromDB}
-                className="bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300 hover:text-emerald-400 hover:border-emerald-500/30 font-mono text-xs py-1.5 px-3 rounded transition-all flex items-center gap-2 disabled:opacity-50"
-              >
-                <RefreshCw className={`w-3 h-3 ${loadingFromDB ? 'animate-spin' : ''}`} />
-                {loadingFromDB ? 'Loading...' : 'Load from DB'}
-              </button>
+              <>
+                <button
+                  onClick={handleOpenBossSelector}
+                  disabled={loadingFromDB}
+                  className="bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300 hover:text-emerald-400 hover:border-emerald-500/30 font-mono text-xs py-1.5 px-3 rounded transition-all flex items-center gap-2 disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-3 h-3 ${loadingFromDB ? 'animate-spin' : ''}`} />
+                  {loadingFromDB ? 'Loading...' : 'Load from DB'}
+                </button>
+                {bosses.length > 0 && (
+                  <button
+                    onClick={handleClearSession}
+                    className="bg-red-900/50 hover:bg-red-900 border border-red-500/30 text-red-300 font-mono text-xs py-1.5 px-3 rounded transition-all flex items-center gap-2"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                    Clear Session
+                  </button>
+                )}
+              </>
             )}
           </div>
         </header>

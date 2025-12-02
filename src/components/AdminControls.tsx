@@ -49,12 +49,12 @@ export default function AdminControls() {
     setLoading(false);
 
     if (success) {
-      alert(`✅ "${bossName}" deleted from database!`);
+      alert(`"${bossName}" deleted from database!`);
       // Refresh the list
       const bosses = await getAllBosses();
       setAllBosses(bosses);
     } else {
-      alert(`❌ Failed to delete "${bossName}". Check console for errors.`);
+      alert(`Failed to delete "${bossName}". Check console for errors.`);
     }
   };
 
@@ -115,7 +115,7 @@ export default function AdminControls() {
                       disabled={loading}
                       className="w-full bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300 font-mono text-xs py-3 px-4 rounded transition-all disabled:opacity-50"
                     >
-                      {loading ? 'LOADING...' : 'LOAD_ALL_BOSSES'}
+                      {loading ? 'LOADING...' : 'VIEW_ALL_BOSSES'}
                     </button>
                   ) : (
                     <>
@@ -163,7 +163,7 @@ export default function AdminControls() {
                     </>
                   )}
                   <p className="text-xs font-mono text-gray-500">
-                    ⚠️ Warning: Deleting a boss permanently removes it from the database!
+                    Warning: Deleting a boss permanently removes it from the database!
                   </p>
                 </div>
               </div>

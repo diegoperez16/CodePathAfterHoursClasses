@@ -52,6 +52,28 @@ $$ LANGUAGE plpgsql;
 4. Click "Run" to execute the SQL
 5. You should see "Success. No rows returned" message
 
+## Step 2.5: Enable Realtime (IMPORTANT!)
+
+For real-time synchronization to work across all users, you must enable the `bosses` table in the realtime publication:
+
+**Option 1: Using the Dashboard (Easiest)**
+1. Go to your Supabase dashboard: https://supabase.com/dashboard/project/dxuxdukcsvjhqmdzpghl
+2. Click **"Database"** in the left sidebar
+3. Click **"Publications"** (not Replication!)
+4. Find the `supabase_realtime` publication
+5. Click on it to expand
+6. Toggle **ON** the `bosses` table
+7. Done!
+
+**Option 2: Using SQL**
+1. Go to **SQL Editor** in your Supabase dashboard
+2. Run this command:
+```sql
+alter publication supabase_realtime add table bosses;
+```
+
+Without this step, real-time sync will not work. Bosses will only load when users manually click "Load from DB".
+
 ## Step 3: Get Your API Credentials
 
 1. In Supabase dashboard, click "Project Settings" (gear icon) in the left sidebar

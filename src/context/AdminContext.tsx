@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface AdminContextType {
   isAdmin: boolean;
@@ -15,6 +15,15 @@ const ADMIN_PASSWORD = 'instructor2024';
 export function AdminProvider({ children }: { children: ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminPassword, setAdminPassword] = useState('');
+
+  // Restore admin state from localStorage on mount
+  useEffect(() => {
+    const savedAdminMode = localStorage.getItem('adminMode');
+    if (savedAdminMode === 'true') {
+      setIsAdmin(true);
+      setAdminPassword(ADMIN_PASSWORD);
+    }
+  }, []);
 
   const setAdminMode = (password: string) => {
     if (password === ADMIN_PASSWORD) {

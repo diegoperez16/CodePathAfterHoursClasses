@@ -1,19 +1,23 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
-import { Code2, Zap, Shield, Gauge, Sparkles, BookOpen, AlertCircle } from 'lucide-react';
+import { Code2, Zap, Shield, Gauge, Sparkles, BookOpen, AlertCircle, Trophy } from 'lucide-react';
 import { useBosses } from '../context/BossContext';
 import { parseBoss, validateBoss } from '../utils/bossParser';
+import { insertBoss } from '../lib/supabaseHelpers';
+import { isSupabaseEnabled } from '../lib/supabase';
 import { DEFAULT_BOSS_TEMPLATE, PARENT_BOSS_CLASS, SPECIAL_MOVES, MAX_STAT_POINTS } from '../constants/specialMoves';
 import type { ValidationError } from '../types/boss';
 
 export default function BossCreationPage() {
   const [code, setCode] = useState(DEFAULT_BOSS_TEMPLATE);
   const [errors, setErrors] = useState<ValidationError[]>([]);
-  const { addBoss, bosses } = useBosses();
+  const [teamName, setTeamName] = useState('');
+  const [saving, setSaving] = useState(false);
+  const { addBoss, bosses, realtimeEnabled } = useBosses();
   const navigate = useNavigate();
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const boss = parseBoss(code);
     const validationErrors = validateBoss(boss);
 
@@ -22,9 +26,28 @@ export default function BossCreationPage() {
       return;
     }
 
-    // Boss is valid - add it
+    // Add to local state
     addBoss(boss);
     setErrors([]);
+
+    // Save to Supabase if enabled
+    if (isSupabaseEnabled()) {
+      setSaving(true);
+      try {
+        const team = teamName.trim() || 'Anonymous';
+        const result = await insertBoss(team, boss);
+        
+        if (result) {
+          console.log('Boss saved to Supabase:', result);
+        } else {
+          console.warn('Failed to save boss to Supabase');
+        }
+      } catch (error) {
+        console.error('Error saving to Supabase:', error);
+      } finally {
+        setSaving(false);
+      }
+    }
     
     // Navigate to fight simulator
     navigate('/fight');
@@ -60,6 +83,12 @@ export default function BossCreationPage() {
             <div className="text-right">
               <div className="text-xs text-gray-500 font-mono mb-1">Bosses Created</div>
               <div className="text-2xl font-mono text-emerald-400">{bosses.length}</div>
+              {realtimeEnabled && (
+                <div className="flex items-center justify-end gap-1 mt-1">
+                  <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></div>
+                  <span className="text-[10px] text-blue-400 font-mono">LIVE</span>
+                </div>
+              )}
             </div>
           </div>
         </header>
@@ -209,12 +238,36 @@ export default function BossCreationPage() {
               </div>
             )}
 
+            {/* Team Name Input (for Supabase) */}
+            {isSupabaseEnabled() && (
+              <div className="mb-4">
+                <label className="block text-xs font-mono text-gray-400 mb-2">
+                  Team Name (optional)
+                </label>
+                <input
+                  type="text"
+                  value={teamName}
+                  onChange={(e) => setTeamName(e.target.value)}
+                  placeholder="Your team name..."
+                  className="w-full bg-black border border-gray-700 rounded px-3 py-2 text-sm font-mono text-white focus:border-emerald-500 focus:outline-none"
+                />
+                <p className="text-[10px] font-mono text-gray-500 mt-1">
+                  Will be saved to database for scoreboard
+                </p>
+              </div>
+            )}
+
             {/* Submit Button */}
             <button
               onClick={handleSubmit}
-              className="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-mono text-sm py-3 px-4 rounded transition-all shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40"
+              disabled={saving}
+              className="w-full bg-emerald-500 hover:bg-emerald-400 disabled:bg-gray-700 disabled:cursor-not-allowed text-black disabled:text-gray-500 font-mono text-sm py-3 px-4 rounded transition-all shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40"
             >
-              <span className="mr-2">&gt;</span>COMPILE_AND_DEPLOY
+              {saving ? (
+                <><span className="animate-pulse mr-2">&gt;&gt;&gt;</span>SAVING...</>
+              ) : (
+                <><span className="mr-2">&gt;</span>COMPILE_AND_DEPLOY</>
+              )}
             </button>
 
             {/* Navigation */}
@@ -223,6 +276,14 @@ export default function BossCreationPage() {
               className="w-full bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300 font-mono text-xs py-2 px-4 rounded transition-all"
             >
               GOTO_ARENA <span className="text-emerald-400">→</span>
+            </button>
+            
+            <button
+              onClick={() => navigate('/scoreboard')}
+              className="w-full bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300 font-mono text-xs py-2 px-4 rounded transition-all flex items-center justify-center gap-2"
+            >
+              <Trophy className="w-3 h-3" />
+              VIEW_SCOREBOARD
             </button>
           </div>
         </div>

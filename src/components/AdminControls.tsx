@@ -1,12 +1,18 @@
 import { useState } from 'react';
-import { Lock, LogOut } from 'lucide-react';
+import { Lock, LogOut, Settings, Trash2, XCircle } from 'lucide-react';
 import { useAdmin } from '../context/AdminContext';
+import { clearSession, getAllBosses, deleteBoss } from '../lib/supabaseHelpers';
+import { isSupabaseEnabled } from '../lib/supabase';
+import type { BossData } from '../types/boss';
 
 export default function AdminControls() {
   const { isAdmin, setAdminMode, logout } = useAdmin();
   const [password, setPassword] = useState('');
   const [showLogin, setShowLogin] = useState(false);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [error, setError] = useState('');
+  const [allBosses, setAllBosses] = useState<BossData[]>([]);
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,23 +26,182 @@ export default function AdminControls() {
     }
   };
 
+  const handleClearSession = async () => {
+    if (!confirm('Clear all bosses from the current session? This will also clear the session scoreboard stats.')) {
+      return;
+    }
+
+    setLoading(true);
+    const success = await clearSession();
+    setLoading(false);
+
+    if (success) {
+      alert('✅ Session cleared! All bosses and fight stats removed from arena.');
+    } else {
+      alert('❌ Failed to clear session. Check console for errors.');
+    }
+  };
+
+  const handleOpenBossManager = async () => {
+    if (!isSupabaseEnabled()) {
+      alert('Supabase is not configured.');
+      return;
+    }
+
+    setLoading(true);
+    const bosses = await getAllBosses();
+    setAllBosses(bosses);
+    setLoading(false);
+    setShowAdminPanel(true);
+  };
+
+  const handleDeleteBoss = async (bossName: string) => {
+    if (!confirm(`Permanently delete "${bossName}" from the database? This cannot be undone!`)) {
+      return;
+    }
+
+    setLoading(true);
+    const success = await deleteBoss(bossName);
+    setLoading(false);
+
+    if (success) {
+      alert(`✅ "${bossName}" deleted from database!`);
+      // Refresh the list
+      const bosses = await getAllBosses();
+      setAllBosses(bosses);
+    } else {
+      alert(`❌ Failed to delete "${bossName}". Check console for errors.`);
+    }
+  };
+
   if (isAdmin) {
     return (
-      <div className="fixed top-4 right-4 z-50">
-        <div className="bg-emerald-950/90 border border-emerald-500/30 rounded px-3 py-2 flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
-            <span className="text-xs font-mono text-emerald-400">INSTRUCTOR_MODE</span>
+      <>
+        <div className="fixed top-4 right-4 z-50">
+          <div className="bg-emerald-950/90 border border-emerald-500/30 rounded px-3 py-2 flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+              <span className="text-xs font-mono text-emerald-400">INSTRUCTOR_MODE</span>
+            </div>
+            <button
+              onClick={() => setShowAdminPanel(!showAdminPanel)}
+              className="text-gray-400 hover:text-emerald-400 transition-colors"
+              title="Admin Panel"
+            >
+              <Settings className="w-4 h-4" />
+            </button>
+            <button
+              onClick={logout}
+              className="text-gray-400 hover:text-white transition-colors"
+              title="Logout"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
-          <button
-            onClick={logout}
-            className="text-gray-400 hover:text-white transition-colors"
-            title="Logout"
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
         </div>
-      </div>
+
+        {/* Admin Panel Modal */}
+        {showAdminPanel && (
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-950 border border-emerald-500/30 rounded-lg max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
+              <div className="bg-black border-b border-emerald-500/30 px-6 py-4 flex items-center justify-between">
+                <h2 className="text-lg font-mono text-emerald-400">ADMIN_PANEL</h2>
+                <button
+                  onClick={() => setShowAdminPanel(false)}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <XCircle className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-6 overflow-y-auto">
+                {/* Session Controls */}
+                <div className="space-y-3">
+                  <h3 className="text-sm font-mono text-emerald-400 flex items-center gap-2">
+                    <Settings className="w-4 h-4" />
+                    SESSION_CONTROLS
+                  </h3>
+                  <button
+                    onClick={handleClearSession}
+                    disabled={loading}
+                    className="w-full bg-red-900/50 hover:bg-red-900 border border-red-500/30 text-red-300 font-mono text-xs py-3 px-4 rounded transition-all disabled:opacity-50"
+                  >
+                    {loading ? 'CLEARING...' : 'CLEAR_SESSION (Remove all bosses from arena)'}
+                  </button>
+                  <p className="text-xs font-mono text-gray-500">
+                    Removes all bosses from the active session. Does not delete from database.
+                  </p>
+                </div>
+
+                {/* Boss Database Manager */}
+                <div className="space-y-3">
+                  <h3 className="text-sm font-mono text-emerald-400 flex items-center gap-2">
+                    <Trash2 className="w-4 h-4" />
+                    BOSS_DATABASE_MANAGER
+                  </h3>
+                  
+                  {allBosses.length === 0 ? (
+                    <button
+                      onClick={handleOpenBossManager}
+                      disabled={loading}
+                      className="w-full bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300 font-mono text-xs py-3 px-4 rounded transition-all disabled:opacity-50"
+                    >
+                      {loading ? 'LOADING...' : 'LOAD_ALL_BOSSES'}
+                    </button>
+                  ) : (
+                    <>
+                      <p className="text-xs font-mono text-gray-400">
+                        {allBosses.length} boss{allBosses.length !== 1 ? 'es' : ''} in database
+                      </p>
+                      <div className="bg-black border border-gray-800 rounded max-h-64 overflow-y-auto">
+                        <table className="w-full">
+                          <thead className="bg-gray-900 border-b border-gray-800 sticky top-0">
+                            <tr>
+                              <th className="px-4 py-2 text-left text-xs font-mono text-gray-400">BOSS_NAME</th>
+                              <th className="px-4 py-2 text-center text-xs font-mono text-gray-400">HP</th>
+                              <th className="px-4 py-2 text-center text-xs font-mono text-gray-400">ATK</th>
+                              <th className="px-4 py-2 text-center text-xs font-mono text-gray-400">SPD</th>
+                              <th className="px-4 py-2 text-center text-xs font-mono text-gray-400">ACTION</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-800">
+                            {allBosses.map((boss) => (
+                              <tr key={boss.name} className="hover:bg-gray-900/50 transition">
+                                <td className="px-4 py-2 text-xs font-mono text-white">{boss.name}</td>
+                                <td className="px-4 py-2 text-xs font-mono text-center text-gray-400">{boss.hp}</td>
+                                <td className="px-4 py-2 text-xs font-mono text-center text-gray-400">{boss.attack}</td>
+                                <td className="px-4 py-2 text-xs font-mono text-center text-gray-400">{boss.speed}</td>
+                                <td className="px-4 py-2 text-center">
+                                  <button
+                                    onClick={() => handleDeleteBoss(boss.name)}
+                                    disabled={loading}
+                                    className="bg-red-900/50 hover:bg-red-900 border border-red-500/30 text-red-300 font-mono text-xs py-1 px-3 rounded transition-all disabled:opacity-50"
+                                  >
+                                    DELETE
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      <button
+                        onClick={() => setAllBosses([])}
+                        className="w-full bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-400 font-mono text-xs py-2 px-4 rounded transition-all"
+                      >
+                        CLOSE_BOSS_LIST
+                      </button>
+                    </>
+                  )}
+                  <p className="text-xs font-mono text-gray-500">
+                    ⚠️ Warning: Deleting a boss permanently removes it from the database!
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </>
     );
   }
 

@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Swords, Trophy, RotateCcw, Plus, BarChart3, Lock, RefreshCw, X } from 'lucide-react';
+import { Swords, Trophy, RotateCcw, Plus, BarChart3, RefreshCw, X } from 'lucide-react';
 import { useBosses } from '../context/BossContext';
-import { useAdmin } from '../context/AdminContext';
 import { simulateFight } from '../utils/fightSimulator';
 import { getAllBosses, updateBossStatsByName, updateSessionStats } from '../lib/supabaseHelpers';
 import { isSupabaseEnabled } from '../lib/supabase';
@@ -11,7 +10,6 @@ import type { FightResult, BossData } from '../types/boss';
 
 export default function FightSimulatorPage() {
   const { bosses, addBoss, removeBoss, realtimeEnabled } = useBosses();
-  const { isAdmin } = useAdmin();
   const navigate = useNavigate();
   const [selectedBoss1, setSelectedBoss1] = useState<number>(-1);
   const [selectedBoss2, setSelectedBoss2] = useState<number>(-1);
@@ -309,20 +307,8 @@ export default function FightSimulatorPage() {
                             : 'border-gray-800 hover:border-cyan-500/30 bg-gray-900/50'
                         }`}
                       >
-                        <div className="flex items-start justify-between mb-2">
-                          <h3 className="font-mono text-sm text-white">{boss.name}</h3>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setShowStory(boss);
-                            }}
-                            className="text-gray-500 hover:text-emerald-400 transition-colors"
-                            title="View Story"
-                          >
-                            <Trophy className="w-3 h-3" />
-                          </button>
-                        </div>
-                        <div className="grid grid-cols-3 gap-2 text-[11px] font-mono">
+                        <h3 className="font-mono text-sm text-white mb-2">{boss.name}</h3>
+                        <div className="grid grid-cols-3 gap-2 text-[11px] font-mono mb-2">
                           <div className="text-gray-500">
                             HP <span className="text-cyan-400">{boss.hp}</span>
                           </div>
@@ -333,6 +319,17 @@ export default function FightSimulatorPage() {
                             SPD <span className="text-yellow-400">{boss.speed}</span>
                           </div>
                         </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowStory(boss);
+                          }}
+                          className="text-xs font-mono text-gray-500 hover:text-emerald-400 transition-colors flex items-center gap-1"
+                          title="View Story"
+                        >
+                          <Trophy className="w-3 h-3" />
+                          <span>Story</span>
+                        </button>
                       </button>
                       <button
                         onClick={(e) => {
@@ -379,20 +376,8 @@ export default function FightSimulatorPage() {
                             : 'border-gray-800 hover:border-red-500/30 bg-gray-900/50'
                         }`}
                       >
-                        <div className="flex items-start justify-between mb-2">
-                          <h3 className="font-mono text-sm text-white">{boss.name}</h3>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setShowStory(boss);
-                            }}
-                            className="text-gray-500 hover:text-emerald-400 transition-colors"
-                            title="View Story"
-                          >
-                            <Trophy className="w-3 h-3" />
-                          </button>
-                        </div>
-                        <div className="grid grid-cols-3 gap-2 text-[11px] font-mono">
+                        <h3 className="font-mono text-sm text-white mb-2">{boss.name}</h3>
+                        <div className="grid grid-cols-3 gap-2 text-[11px] font-mono mb-2">
                           <div className="text-gray-500">
                             HP <span className="text-cyan-400">{boss.hp}</span>
                           </div>
@@ -403,6 +388,17 @@ export default function FightSimulatorPage() {
                             SPD <span className="text-yellow-400">{boss.speed}</span>
                           </div>
                         </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowStory(boss);
+                          }}
+                          className="text-xs font-mono text-gray-500 hover:text-emerald-400 transition-colors flex items-center gap-1"
+                          title="View Story"
+                        >
+                          <Trophy className="w-3 h-3" />
+                          <span>Story</span>
+                        </button>
                       </button>
                       <button
                         onClick={(e) => {
@@ -466,38 +462,17 @@ export default function FightSimulatorPage() {
         {/* Fight Button */}
         {!fightResult && bosses.length >= 2 && (
           <div className="text-center mb-6">
-            {!isAdmin ? (
-              <div className="space-y-3">
-                <div className="bg-gray-950 border border-yellow-500/30 rounded p-4 max-w-md mx-auto">
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <Lock className="w-4 h-4 text-yellow-400" />
-                    <span className="text-xs font-mono text-yellow-400">INSTRUCTOR_AUTH_REQUIRED</span>
-                  </div>
-                  <p className="text-xs font-mono text-gray-400 text-center">
-                    Combat simulation can only be initiated by the instructor.
-                  </p>
-                  {selectedBoss1 !== -1 && selectedBoss2 !== -1 && (
-                    <div className="mt-3 pt-3 border-t border-gray-800 text-center">
-                      <p className="text-xs font-mono text-emerald-400">
-                        Battle ready: <span className="text-white">{bosses[selectedBoss1].name}</span> vs <span className="text-white">{bosses[selectedBoss2].name}</span>
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <button
-                onClick={handleFight}
-                disabled={isAnimating || selectedBoss1 === -1 || selectedBoss2 === -1}
-                className="bg-emerald-500 hover:bg-emerald-400 disabled:bg-gray-700 disabled:cursor-not-allowed text-black disabled:text-gray-500 font-mono text-sm py-3 px-12 rounded transition-all shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40"
-              >
-                {isAnimating ? (
-                  <><span className="animate-pulse">&gt;&gt;&gt;</span> SIMULATING_COMBAT...</>
-                ) : (
-                  <><span>&gt;&gt;&gt;</span> EXECUTE_BATTLE_SIMULATION</>
-                )}
-              </button>
-            )}
+            <button
+              onClick={handleFight}
+              disabled={isAnimating || selectedBoss1 === -1 || selectedBoss2 === -1}
+              className="bg-emerald-500 hover:bg-emerald-400 disabled:bg-gray-700 disabled:cursor-not-allowed text-black disabled:text-gray-500 font-mono text-sm py-3 px-12 rounded transition-all shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40"
+            >
+              {isAnimating ? (
+                <><span className="animate-pulse">&gt;&gt;&gt;</span> SIMULATING_COMBAT...</>
+              ) : (
+                <><span>&gt;&gt;&gt;</span> EXECUTE_BATTLE_SIMULATION</>
+              )}
+            </button>
           </div>
         )}
 

@@ -69,9 +69,9 @@ export default function BossCreationPage() {
   const statsValid = totalStats <= MAX_STAT_POINTS;
 
   return (
-    <div className="min-h-screen bg-black text-gray-100 p-4 md:p-8">
-      <div className="max-w-7xl mx-auto">
-        <header className="mb-8 border-b border-emerald-500/30 pb-6">
+    <div className="min-h-screen bg-black text-gray-100 p-4 md:p-8 flex flex-col">
+      <div className="max-w-7xl mx-auto w-full flex-1 flex flex-col">
+        <header className="mb-8 border-b border-emerald-500/30 pb-6 flex-shrink-0">
           <div className="flex items-center justify-between mb-2">
             <div>
               <h1 className="text-2xl md:text-4xl font-light tracking-tight text-white mb-1 flex items-center gap-3">
@@ -94,7 +94,7 @@ export default function BossCreationPage() {
         </header>
 
         {/* Parent Class Reference */}
-        <div className="mb-4 bg-gray-950 border border-blue-500/20 rounded p-4 shadow-lg shadow-blue-500/10">
+        <div className="mb-4 bg-gray-950 border border-blue-500/20 rounded p-4 shadow-lg shadow-blue-500/10 flex-shrink-0">
           <div className="flex items-center gap-2 mb-3 pb-2 border-b border-blue-500/20">
             <BookOpen className="w-4 h-4 text-blue-400" />
             <h3 className="text-sm font-mono text-blue-400">PARENT_CLASS_REFERENCE</h3>
@@ -104,9 +104,9 @@ export default function BossCreationPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1">
           {/* Code Editor */}
-          <div className="lg:col-span-2 bg-gray-950 border border-emerald-500/20 rounded overflow-hidden shadow-lg shadow-emerald-500/10">
+          <div className="lg:col-span-2 bg-gray-950 border border-emerald-500/20 rounded overflow-hidden shadow-lg shadow-emerald-500/10 flex flex-col">
             <div className="bg-black border-b border-emerald-500/20 px-4 py-2 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="flex gap-1.5">
@@ -118,7 +118,7 @@ export default function BossCreationPage() {
               </div>
               <span className="text-xs font-mono text-emerald-400">READY</span>
             </div>
-            <div className="h-[600px]">
+            <div className="flex-1 min-h-[500px]">
               <Editor
                 height="100%"
                 defaultLanguage="python"

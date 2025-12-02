@@ -279,6 +279,14 @@ export default function BossCreationPage() {
             </button>
             
             <button
+              onClick={() => navigate('/tournament')}
+              className="w-full bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300 font-mono text-xs py-2 px-4 rounded transition-all flex items-center justify-center gap-2"
+            >
+              <Trophy className="w-3 h-3" />
+              TOURNAMENT_MODE
+            </button>
+            
+            <button
               onClick={() => navigate('/scoreboard')}
               className="w-full bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300 font-mono text-xs py-2 px-4 rounded transition-all flex items-center justify-center gap-2"
             >

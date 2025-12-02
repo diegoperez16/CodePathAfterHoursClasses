@@ -4,6 +4,7 @@ import { AdminProvider } from './context/AdminContext';
 import BossCreationPage from './pages/BossCreationPage';
 import FightSimulatorPage from './pages/FightSimulatorPage';
 import ScoreboardPage from './pages/ScoreboardPage';
+import TournamentPage from './pages/TournamentPage';
 import AdminControls from './components/AdminControls';
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
             <Route path="/" element={<BossCreationPage />} />
             <Route path="/fight" element={<FightSimulatorPage />} />
             <Route path="/scoreboard" element={<ScoreboardPage />} />
+            <Route path="/tournament" element={<TournamentPage />} />
           </Routes>
         </Router>
       </BossProvider>

@@ -516,6 +516,13 @@ export default function FightSimulatorPage() {
               <span className="text-emerald-400">←</span> BACK_TO_CONSTRUCTOR
             </button>
             <button
+              onClick={() => navigate('/tournament')}
+              className="bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300 font-mono text-xs py-2 px-6 rounded transition-all flex items-center gap-2"
+            >
+              <Trophy className="w-3 h-3" />
+              TOURNAMENT_MODE
+            </button>
+            <button
               onClick={() => navigate('/scoreboard')}
               className="bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300 font-mono text-xs py-2 px-6 rounded transition-all flex items-center gap-2"
             >

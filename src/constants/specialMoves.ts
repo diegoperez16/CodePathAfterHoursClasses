@@ -173,7 +173,7 @@ class MyBoss(Boss):
 export const MAX_STAT_POINTS = 200;
 export const SPECIAL_MOVE_TURN = 3;
 export const CRIT_CHANCE = 0.15;
-export const BASE_DODGE_CHANCE = 0.05; // 5% base dodge chance
+export const BASE_DODGE_CHANCE = 0.1; // 10% base dodge chance
 export const RAGE_MODE_HP_THRESHOLD = 0.5; // Activate at 50% HP
 export const RAGE_MODE_ATTACK_BONUS = 10;
 
@@ -185,5 +185,11 @@ export const RANDOM_EVENTS = [
   { name: 'HEALING MIST', effect: 'Random fighter heals 10 HP', chance: 0.07 },
   { name: 'SPEED BOOST', effect: 'Random fighter gains +3 speed', chance: 0.08 },
   { name: 'POWER DRAIN', effect: 'Random fighter loses 5 attack', chance: 0.06 },
+  { name: 'BARRIER STORM', effect: 'Both fighters gain +15 barrier', chance: 0.05 },
+  { name: 'TIMESTRIKE', effect: 'Random fighter takes extra turn damage', chance: 0.05 },
+  { name: 'REJUVENATION', effect: 'Both fighters heal 8 HP', chance: 0.06 },
+  { name: 'GRAVITY SHIFT', effect: 'Fighters swap 10% of their speed', chance: 0.05 },
+  { name: 'BLOOD MOON', effect: 'Attacker deals +10 damage but loses 5 HP', chance: 0.04 },
+  { name: 'DIVINE SHIELD', effect: 'Random fighter gains +25 barrier', chance: 0.04 },
 ];
-export const RANDOM_EVENT_CHANCE = 0.75; // 75% chance per turn // 15% chance for critical hit
+export const RANDOM_EVENT_CHANCE = 0.85; // 85% chance per turn

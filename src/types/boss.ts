@@ -28,6 +28,11 @@ export interface FightLog {
   message: string;
   attacker?: string;
   defender?: string;
+  isRandomEvent?: boolean;
+  currentStats?: {
+    fighter1: { name: string; hp: number; attack: number; speed: number; barrier: number };
+    fighter2: { name: string; hp: number; attack: number; speed: number; barrier: number };
+  };
 }
 
 export interface FightResult {

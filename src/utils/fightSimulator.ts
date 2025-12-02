@@ -10,6 +10,26 @@ import {
   RANDOM_EVENT_CHANCE
 } from '../constants/specialMoves';
 
+// Helper function to create current stats snapshot
+function getStatsSnapshot(fighter1: FightBoss, fighter2: FightBoss) {
+  return {
+    fighter1: { 
+      name: fighter1.name, 
+      hp: Math.max(0, fighter1.currentHp), 
+      attack: fighter1.currentAttack, 
+      speed: fighter1.currentSpeed,
+      barrier: fighter1.barrier
+    },
+    fighter2: { 
+      name: fighter2.name, 
+      hp: Math.max(0, fighter2.currentHp), 
+      attack: fighter2.currentAttack, 
+      speed: fighter2.currentSpeed,
+      barrier: fighter2.barrier
+    }
+  };
+}
+
 export function simulateFight(boss1: BossData, boss2: BossData): FightResult {
   const logs: FightLog[] = [];
   
@@ -75,6 +95,7 @@ export function simulateFight(boss1: BossData, boss2: BossData): FightResult {
     logs.push({
       turn,
       message: `\n--- Turn ${turn} ---`,
+      currentStats: getStatsSnapshot(fighter1, fighter2)
     });
 
     // Check for random events
@@ -83,6 +104,7 @@ export function simulateFight(boss1: BossData, boss2: BossData): FightResult {
       logs.push({
         turn,
         message: `[RANDOM EVENT: ${event.name}] ${event.effect}`,
+        isRandomEvent: true,
       });
 
       // Apply random event effects
@@ -131,7 +153,85 @@ export function simulateFight(boss1: BossData, boss2: BossData): FightResult {
             logs.push({ turn, message: `${fighter2.name} loses 5 attack!` });
           }
           break;
+        case 'BARRIER STORM':
+          fighter1.barrier += 15;
+          fighter2.barrier += 15;
+          logs.push({ turn, message: 'Both fighters gain +15 barrier!' });
+          break;
+        case 'TIMESTRIKE':
+          if (Math.random() < 0.5) {
+            const damage = attacker.currentAttack;
+            fighter1.currentHp -= damage;
+            logs.push({ turn, message: `${fighter1.name} takes ${damage} time damage!` });
+          } else {
+            const damage = attacker.currentAttack;
+            fighter2.currentHp -= damage;
+            logs.push({ turn, message: `${fighter2.name} takes ${damage} time damage!` });
+          }
+          break;
+        case 'REJUVENATION':
+          fighter1.currentHp = Math.min(fighter1.hp, fighter1.currentHp + 8);
+          fighter2.currentHp = Math.min(fighter2.hp, fighter2.currentHp + 8);
+          logs.push({ turn, message: 'Both fighters heal 8 HP!' });
+          break;
+        case 'GRAVITY SHIFT':
+          const speedSwap = Math.floor(fighter1.currentSpeed * 0.1);
+          fighter1.currentSpeed -= speedSwap;
+          fighter2.currentSpeed += speedSwap;
+          logs.push({ turn, message: `Gravity shifts! ${fighter2.name} gains ${speedSwap} speed from ${fighter1.name}!` });
+          break;
+        case 'BLOOD MOON':
+          if (attacker.currentHp > 5) {
+            attacker.currentAttack += 10;
+            attacker.currentHp -= 5;
+            logs.push({ turn, message: `${attacker.name} gains +10 attack but loses 5 HP!` });
+          }
+          break;
+        case 'DIVINE SHIELD':
+          if (Math.random() < 0.5) {
+            fighter1.barrier += 25;
+            logs.push({ turn, message: `${fighter1.name} gains +25 barrier!` });
+          } else {
+            fighter2.barrier += 25;
+            logs.push({ turn, message: `${fighter2.name} gains +25 barrier!` });
+          }
+          break;
       }
+
+      // Check if either fighter was defeated by the random event
+      if (fighter1.currentHp <= 0 || fighter2.currentHp <= 0) {
+        const fighter1Defeated = fighter1.currentHp <= 0;
+        const fighter2Defeated = fighter2.currentHp <= 0;
+        
+        if (fighter1Defeated && fighter2Defeated) {
+          // Both defeated - rare case
+          logs.push({
+            turn,
+            message: `[K.O.] Both fighters have been defeated by the environment!`,
+            currentStats: getStatsSnapshot(fighter1, fighter2)
+          });
+        } else if (fighter1Defeated) {
+          logs.push({
+            turn,
+            message: `[K.O.] ${fighter1.name} has been defeated by the environment!`,
+            currentStats: getStatsSnapshot(fighter1, fighter2)
+          });
+        } else {
+          logs.push({
+            turn,
+            message: `[K.O.] ${fighter2.name} has been defeated by the environment!`,
+            currentStats: getStatsSnapshot(fighter1, fighter2)
+          });
+        }
+        break; // Exit the fight loop
+      }
+
+      // Add stats update after random event
+      logs.push({
+        turn,
+        message: '',
+        currentStats: getStatsSnapshot(fighter1, fighter2)
+      });
     }
 
     // Check for rage mode activation (50% HP)
@@ -141,6 +241,7 @@ export function simulateFight(boss1: BossData, boss2: BossData): FightResult {
       logs.push({
         turn,
         message: `[RAGE MODE] ${attacker.name} enters RAGE MODE! Attack +${RAGE_MODE_ATTACK_BONUS}!`,
+        currentStats: getStatsSnapshot(fighter1, fighter2)
       });
     }
     if (!defender.rage_mode && defender.currentHp <= defender.hp * RAGE_MODE_HP_THRESHOLD) {
@@ -149,6 +250,7 @@ export function simulateFight(boss1: BossData, boss2: BossData): FightResult {
       logs.push({
         turn,
         message: `[RAGE MODE] ${defender.name} enters RAGE MODE! Attack +${RAGE_MODE_ATTACK_BONUS}!`,
+        currentStats: getStatsSnapshot(fighter1, fighter2)
       });
     }
 
@@ -169,6 +271,7 @@ export function simulateFight(boss1: BossData, boss2: BossData): FightResult {
         logs.push({
           turn,
           message: `${attacker.name}: HP=${Math.max(0, attacker.currentHp)}, ATK=${attacker.currentAttack}, Barrier=${attacker.barrier}`,
+          currentStats: getStatsSnapshot(fighter1, fighter2)
         });
 
         logs.push({
@@ -185,9 +288,10 @@ export function simulateFight(boss1: BossData, boss2: BossData): FightResult {
       if (dodged) {
         logs.push({
           turn,
-          message: `${defender.name} DODGED the attack! (Speed advantage)`,
+          message: `${defender.name} DODGED the attack!`,
           attacker: attacker.name,
           defender: defender.name,
+          currentStats: getStatsSnapshot(fighter1, fighter2)
         });
       } else {
         // Normal attack with critical hit chance
@@ -215,6 +319,7 @@ export function simulateFight(boss1: BossData, boss2: BossData): FightResult {
             logs.push({
               turn,
               message: `${damage} damage dealt to ${defender.name}! (${Math.max(0, defender.currentHp)} HP remaining)`,
+              currentStats: getStatsSnapshot(fighter1, fighter2)
             });
           }
         } else {
@@ -224,6 +329,7 @@ export function simulateFight(boss1: BossData, boss2: BossData): FightResult {
             message: `${attacker.name} attacks for ${damage} damage${isCrit ? ' ** CRITICAL HIT **' : ''}! ${defender.name} has ${Math.max(0, defender.currentHp)} HP remaining`,
             attacker: attacker.name,
             defender: defender.name,
+            currentStats: getStatsSnapshot(fighter1, fighter2)
           });
         }
       }
@@ -234,6 +340,7 @@ export function simulateFight(boss1: BossData, boss2: BossData): FightResult {
       logs.push({
         turn,
         message: `[K.O.] ${defender.name} has been defeated!`,
+        currentStats: getStatsSnapshot(fighter1, fighter2)
       });
       break;
     }
